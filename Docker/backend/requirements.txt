@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+httpx
+google-cloud-texttospeech
+python-multipart
+pytest
+pytest-asyncio
+pytest-mock

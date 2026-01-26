@@ -1,0 +1,17 @@
+# Credentials
+credentials.json
+gcp-credentials.json
+*.key
+
+# Python
+__pycache__/
+*.pyc
+
+# Javascript
+node_modules/
+dist/
+coverage/
+
+# IDE
+.vscode/
+.idea/

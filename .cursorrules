@@ -1,0 +1,28 @@
+# Project Rules for Antigravity Agents
+
+## 🚨 CRITICAL: Working Directory
+**ALL code modifications must happen inside the `Docker/` directory.**
+The root directory `/media/jian-zhong/Data/Projects/WebpageReaderGoogleCloud/` contains documentation (`Planning/`) but the actual application code is containerized in `Docker/`.
+
+- **Backend**: `Docker/backend/` (FastAPI)
+- **Frontend**: `Docker/frontend/` (React + Vite)
+- **Infrastructure**: `Docker/docker-compose.yml`
+
+## 🛠️ Build & Run Instructions
+To run the full stack, use Docker Compose:
+```bash
+cd Docker
+docker-compose up --build
+```
+
+## 🧠 Project Context
+- **Goal**: A web reader app that extracts article content and reads it aloud using Google Cloud TTS.
+- **Architecture**: 
+  - Frontend: React (Vite)
+  - Backend: Python (FastAPI)
+  - Services: Google Cloud Text-to-Speech
+
+## 📝 Agent Instructions
+- **Read**: specific details in `Planning/mvppdr.md` for requirements.
+- **Modify**: ONLY files within `Docker/`. Do not create source code in the root directory.
+- **Verify**: Check `Docker/docker-compose.yml` for port mappings (Frontend: 3000, Backend: 8080).

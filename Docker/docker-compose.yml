@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8081:8080"
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json # Placeholder
+    volumes:
+      - ./backend:/app
+      # Mount credentials.json from the Docker directory to /app/credentials.json
+      - ./credentials.json:/app/credentials.json
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8081
+    depends_on:
+      - backend
+
+# usage: docker-compose up --build
