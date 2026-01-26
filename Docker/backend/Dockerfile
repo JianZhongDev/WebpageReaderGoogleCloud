@@ -1,5 +1,5 @@
-# Python 3.9 Slim Image
-FROM python:3.9-slim
+# Python 3.11 Slim Image
+FROM python:3.11-slim
 
 WORKDIR /app
 

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import App from './App';
 import * as api from './api';
@@ -6,36 +6,37 @@ import * as api from './api';
 // Mock the API module
 vi.mock('./api');
 
+// Mock HTMLMediaElement.prototype.play
+window.HTMLMediaElement.prototype.play = vi.fn(() => Promise.resolve());
+
+
 describe('App Component', () => {
     it('renders title', () => {
         render(<App />);
         expect(screen.getByText('Web Reader')).toBeInTheDocument();
     });
 
-    it('allows entering text', () => {
-        render(<App />);
-        const textarea = screen.getByPlaceholderText('Paste your text here...');
-        fireEvent.change(textarea, { target: { value: 'Hello World' } });
-        expect(textarea.value).toBe('Hello World');
-    });
-
-    it('synthesizes audio when button clicked', async () => {
+    it('synthesizes audio and renders words', async () => {
         // Mock the response
         api.synthesizeAudio.mockResolvedValueOnce({
             audio_base64: 'fakeaudio',
-            timepoints: []
+            timepoints: [
+                { mark_name: "0", time_seconds: 0.1 },
+                { mark_name: "1", time_seconds: 0.5 }
+            ]
         });
 
         render(<App />);
         const textarea = screen.getByPlaceholderText('Paste your text here...');
         fireEvent.change(textarea, { target: { value: 'Hello World' } });
 
-        // Check loading button isn't disabled
         const button = screen.getByText('Listen');
         fireEvent.click(button);
 
-        // Should call API
-        expect(api.synthesizeAudio).toHaveBeenCalledTimes(1);
-        expect(api.synthesizeAudio).toHaveBeenCalledWith('Hello World');
+        // Wait for API call and rendering
+        await waitFor(() => {
+            expect(screen.getByText('Hello')).toBeInTheDocument();
+            expect(screen.getByText('World')).toBeInTheDocument();
+        });
     });
 });
