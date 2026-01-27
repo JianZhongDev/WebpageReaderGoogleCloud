@@ -19,4 +19,14 @@ export const synthesizeAudio = async (text, voice_id = "en-US-Wavenet-D") => {
     }
 };
 
+export const fetchVoices = async () => {
+    try {
+        const response = await api.get('/api/v1/voices');
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching voices:", error);
+        return [];
+    }
+};
+
 export default api;

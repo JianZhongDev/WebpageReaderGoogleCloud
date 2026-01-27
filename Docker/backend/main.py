@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 import logging
 
-from services.tts import synthesize_text
+from services.tts import synthesize_text, list_voices
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -44,4 +44,14 @@ async def synthesize_audio(request: SynthesizeRequest):
         return result
     except Exception as e:
         logger.error(f"Synthesis failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/voices")
+async def get_voices():
+    try:
+        # User wants to select from various languages/speakers, so we fetch all valid ones
+        voices = await list_voices()
+        return voices
+    except Exception as e:
+        logger.error(f"Failed to list voices: {e}")
         raise HTTPException(status_code=500, detail=str(e))

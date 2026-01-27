@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { synthesizeAudio } from './api';
+import { synthesizeAudio, fetchVoices } from './api';
 
 function App() {
     const [text, setText] = useState('');
@@ -9,7 +9,20 @@ function App() {
     const [activeWordIndex, setActiveWordIndex] = useState(-1);
     const [loading, setLoading] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [voices, setVoices] = useState([]);
+    const [selectedVoice, setSelectedVoice] = useState("en-US-Wavenet-D");
     const audioRef = useRef(null);
+
+    useEffect(() => {
+        fetchVoices().then(data => {
+            if (data && data.length > 0) {
+                setVoices(data);
+                if (!data.find(v => v.name === selectedVoice)) {
+                    setSelectedVoice(data[0].name);
+                }
+            }
+        });
+    }, []);
 
     const handleSynthesize = async () => {
         if (!text) return;
@@ -18,16 +31,13 @@ function App() {
         setAudioData(null);
         setTimepoints([]);
         setActiveWordIndex(-1);
-
-        // Split text into words for rendering (Must loosely match backend simple split)
-        // We filter empty strings to handle multiple spaces safely if backend does the same split() behavior
-        const wordList = text.trim().split(/\s+/);
-        setWords(wordList);
+        setWords([]);
 
         try {
-            const data = await synthesizeAudio(text);
+            const data = await synthesizeAudio(text, selectedVoice);
             setAudioData(data.audio_base64);
             setTimepoints(data.timepoints || []);
+            setWords(data.disp_world_list || []);
         } catch (error) {
             console.error(error);
             const msg = error.response?.data?.detail || error.message || "Failed to synthesize";
@@ -103,23 +113,46 @@ function App() {
                                 resize: 'vertical'
                             }}
                         />
-                        <button
-                            onClick={handleSynthesize}
-                            disabled={loading || !text}
-                            style={{
-                                backgroundColor: '#2563eb',
-                                color: 'white',
-                                padding: '0.75rem 1.5rem',
-                                borderRadius: '0.5rem',
-                                border: 'none',
-                                cursor: (loading || !text) ? 'not-allowed' : 'pointer',
-                                opacity: (loading || !text) ? 0.7 : 1,
-                                fontWeight: '600',
-                                alignSelf: 'flex-end'
-                            }}
-                        >
-                            {loading ? 'Processing...' : 'Listen'}
-                        </button>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <label style={{ fontWeight: 600, color: '#4b5563' }}>Voice:</label>
+                                <select
+                                    value={selectedVoice}
+                                    onChange={(e) => setSelectedVoice(e.target.value)}
+                                    style={{
+                                        padding: '0.5rem',
+                                        borderRadius: '0.5rem',
+                                        border: '1px solid #d1d5db',
+                                        backgroundColor: 'white',
+                                        fontSize: '0.9rem'
+                                    }}
+                                >
+                                    {voices.map(voice => (
+                                        <option key={voice.name} value={voice.name}>
+                                            {voice.name} ({voice.ssml_gender})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <button
+                                onClick={handleSynthesize}
+                                disabled={loading || !text}
+                                style={{
+                                    backgroundColor: '#2563eb',
+                                    color: 'white',
+                                    padding: '0.75rem 1.5rem',
+                                    borderRadius: '0.5rem',
+                                    border: 'none',
+                                    cursor: (loading || !text) ? 'not-allowed' : 'pointer',
+                                    opacity: (loading || !text) ? 0.7 : 1,
+                                    fontWeight: '600'
+                                }}
+                            >
+                                {loading ? 'Processing...' : 'Listen'}
+                            </button>
+                        </div>
                     </div>
 
                     {/* Karaoke Display Area */}
