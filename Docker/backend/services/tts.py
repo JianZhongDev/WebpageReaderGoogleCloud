@@ -65,7 +65,7 @@ async def synthesize_text(text: str, voice_id: str = "en-US-Wavenet-D") -> Dict[
     
     ssml_text = " ".join(ssml_parts)
 
-    print(ssml_text)
+    # print(ssml_text) ## DEBUG CODE
 
     synthesis_input = texttospeech.SynthesisInput(ssml=ssml_text)
 
@@ -106,7 +106,7 @@ async def synthesize_text(text: str, voice_id: str = "en-US-Wavenet-D") -> Dict[
     encoded_audio = base64.b64encode(response.audio_content).decode('utf-8')
     
 
-    print(processed_timepoints)
+    # print(processed_timepoints) ## DEBUG CODE
 
     disp_world_list = words
 
@@ -148,3 +148,66 @@ async def list_voices(language_code: str = None) -> List[Dict[str, Any]]:
     # Sort for UI consistency
     voices.sort(key=lambda x: x["name"])
     return voices
+
+def detect_language(text: str) -> str:
+    from langdetect import detect
+    try:
+        return detect(text)
+    except Exception:
+        return "en" # Fallback to English
+
+def map_language_to_voice(language_code: str, available_voices: List[Dict[str, Any]]) -> str:
+    """
+    Maps a language code (e.g. 'fr', 'zh-cn') to a recommended voice name.
+    """
+    # 1. Try exact match on language code suffix/prefix logic
+    # The voices return language_codes like ['en-US'], ['fr-FR'], ['cmn-CN'] (which might be zh-CN in langdetect?)
+    
+    # Langdetect returns 'zh-cn', 'en', 'fr' etc.
+    # Google voices have 'en-US', 'fr-FR', 'cmn-CN', 'yue-HK'
+    
+    # Normalize language_code to lowercase for comparison
+    lang = language_code.lower()
+    
+    # Heuristic for Chinese: langdetect might return 'zh-cn' or 'zh-tw'. 
+    # Google uses 'cmn-CN' (Mandarin), 'yue-HK' (Cantonese), 'cmn-TW'
+    if lang.startswith("zh"):
+        if "tw" in lang:
+            # Prefer Taiwan Mandarin if available
+            target = "cmn-TW"
+        else:
+             target = "cmn-CN"
+        
+        # Search for first voice containing target
+        for voice in available_voices:
+             for code in voice['language_codes']:
+                 if target.lower() in code.lower():
+                     return voice['name']
+        
+    # General loop
+    # Priority 1: Match 'en' to 'en-US', 'fr' to 'fr-FR' etc.
+    # We look for a voice where the language_code starts with the detected lang
+    
+    candidate = None
+    
+    for voice in available_voices:
+        for code in voice['language_codes']:
+            code_lower = code.lower()
+            # If exact match (unlikely if region is missing)
+            if code_lower == lang:
+                return voice['name']
+            
+            # If detected 'fr' and voice is 'fr-FR' -> match because 'fr-fr'.startswith('fr')
+            # But we must be careful: 'en' matches 'en-US', 'en-GB', 'en-AU'. We probably prefer US for 'en'.
+            if code_lower.startswith(lang):
+                if candidate is None:
+                    candidate = voice['name']
+                # Prefer 'US' for English if multiple candidates
+                if lang == 'en' and 'US' in code:
+                    return voice['name']
+                    
+    if candidate:
+        return candidate
+
+    return None
+

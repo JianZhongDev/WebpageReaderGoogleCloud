@@ -29,4 +29,15 @@ export const fetchVoices = async () => {
     }
 };
 
+
+export const detectLanguage = async (text) => {
+    try {
+        const response = await api.post('/api/v1/detect-language', { text });
+        return response.data;
+    } catch (error) {
+        console.error("Error detecting language:", error);
+        return null; // Return null to indicate failure/no meaningful result
+    }
+};
+
 export default api;

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { synthesizeAudio, fetchVoices } from './api';
+import { synthesizeAudio, fetchVoices, detectLanguage } from './api';
 
 function App() {
     const [text, setText] = useState('');
@@ -23,6 +23,24 @@ function App() {
             }
         });
     }, []);
+
+    // Debounce detection
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (text && text.trim().length > 1) {
+                const result = await detectLanguage(text);
+                if (result && result.recommended_voice) {
+                    // Check if recommended voice exists in our list
+                    const voiceExists = voices.find(v => v.name === result.recommended_voice);
+                    if (voiceExists) {
+                        setSelectedVoice(result.recommended_voice);
+                    }
+                }
+            }
+        }, 800); // 800ms debounce
+
+        return () => clearTimeout(timer);
+    }, [text, voices]);
 
     const handleSynthesize = async () => {
         if (!text) return;

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 import logging
 
-from services.tts import synthesize_text, list_voices
+from services.tts import synthesize_text, list_voices, detect_language, map_language_to_voice
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -32,6 +32,9 @@ class SynthesizeRequest(BaseModel):
     text: str
     voice_id: str = "en-US-Wavenet-D"
 
+class DetectLanguageRequest(BaseModel):
+    text: str
+
 @app.get("/")
 def read_root():
     return {"message": "Web Reader API is running"}
@@ -55,3 +58,24 @@ async def get_voices():
     except Exception as e:
         logger.error(f"Failed to list voices: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/detect-language")
+async def detect_language_endpoint(request: DetectLanguageRequest):
+    try:
+        detected_lang = detect_language(request.text)
+        
+        # We need the list of voices to map
+        all_voices = await list_voices()
+        recommended_voice = map_language_to_voice(detected_lang, all_voices)
+        
+        return {
+            "detected_language": detected_lang,
+            "recommended_voice": recommended_voice
+        }
+    except Exception as e:
+        logger.error(f"Detection failed: {e}")
+        # Don't fail the request, just return defaults if something explodes
+        return {
+            "detected_language": "en",
+            "recommended_voice": "en-US-Wavenet-D"
+        }
