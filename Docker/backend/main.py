@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 import logging
+import os
 
 from services.tts import synthesize_text, list_voices, detect_language, map_language_to_voice
 
@@ -14,11 +15,7 @@ app = FastAPI(title="Web Reader API", version="1.0.0")
 
 # CORS Configuration
 # Allow requests from the frontend (localhost:3000 for dev)
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:5173", # Vite default
-]
+origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 
 app.add_middleware(
     CORSMiddleware,

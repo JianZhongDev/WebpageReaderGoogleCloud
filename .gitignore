@@ -1,0 +1,45 @@
+# macOS
+.DS_Store
+._*
+.AppleDouble
+.LSOverride
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+deploy_log.txt
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Firebase
+.firebase/
+.firebaserc
+
+# Build Output
+dist/
+build/
+
+# IDE/Editor
+.vscode/
+.idea/
+.project
+.settings/
+*.sublime-workspace
+*.swp

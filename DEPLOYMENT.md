@@ -15,6 +15,31 @@ This guide outlines the steps to deploy your Web Reader app to Google Cloud for 
 
 ---
 
+## 🚀 Automated Deployment (Recommended)
+
+We have provided shell scripts to automate the entire process.
+
+### Step 1: Deploy Backend
+1.  Run the backend deployment script:
+    ```bash
+    ./deploy_backend.sh
+    ```
+2.  It will ask you to log in if needed and set up the Cloud Run service.
+3.  **Copy the Backend URL** displayed at the end of the script output.
+
+### Step 2: Deploy Frontend
+1.  Run the frontend deployment script with the URL you just copied:
+    ```bash
+    ./deploy_frontend.sh "YOUR_BACKEND_URL"
+    ```
+    *(Example: `./deploy_frontend.sh "https://web-reader-backend-xyz.a.run.app"`)*
+
+2.  The script will build the frontend and deploy it to Firebase Hosting.
+
+---
+
+## Manual Deployment Guide
+
 ## Step 1: Deploy Backend (Cloud Run)
 
 1.  **Enable APIs**:
@@ -32,8 +57,9 @@ This guide outlines the steps to deploy your Web Reader app to Google Cloud for 
     Run this from the `Docker/backend` directory:
     ```bash
     cd Docker/backend
-    gcloud run deploy web-reader-backend --source . --region us-central1 --allow-unauthenticated
+    gcloud run deploy web-reader-backend --source . --region us-central1 --allow-unauthenticated --set-env-vars ALLOWED_ORIGINS="*"
     ```
+    *Note*: We use `ALLOWED_ORIGINS="*"` to allow any frontend to access the API. For stricter security, you can set this to your specific Firebase URL once deployed.
 
 4.  **View URL**:
     The command will output a URL (e.g., `https://web-reader-backend-xyz-uc.a.run.app`). **Copy this URL.**
